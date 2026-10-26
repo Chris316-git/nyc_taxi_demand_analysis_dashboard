@@ -1,5 +1,5 @@
-target/
-data/
+/target/
+/data/
 frontend/node_modules/
 frontend/dist/
 loadtest/results/
