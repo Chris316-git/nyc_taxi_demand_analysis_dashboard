@@ -285,6 +285,10 @@ Notebook 05 can automatically download missing monthly Yellow Taxi Parquet files
 DOWNLOAD_MISSING_FILES = True
 ```
 
+## Real-Time Demand Service
+
+The [`realtime-service/`](realtime-service/) folder turns this analysis into a streaming backend: trips are replayed through **Kafka**, counted per zone **exactly once** by a **Spring Boot** consumer (idempotent writes to **PostgreSQL**), and served through a **Redis**-cached top-K REST API and a **React/TypeScript** dashboard. On the January 2025 data it ingests ~28.8K trips/s end to end and serves top-K queries at 1.5 ms p95 (500 req/s), and replaying the full month twice with injected duplicates still yields exactly 3,321,739 trips. See its [README](realtime-service/README.md) for the design, benchmarks and tests.
+
 ## Limitations
 
 - Demand is measured by completed Yellow Taxi pickups, not unmet demand.

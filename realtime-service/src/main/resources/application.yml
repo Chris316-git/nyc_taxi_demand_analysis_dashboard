@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: taxi-demand-service
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/taxi}
+    username: ${POSTGRES_USER:taxi}
+    password: ${POSTGRES_PASSWORD:taxi}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:16}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 250ms        # a slow cache must not slow the API; we fail open to Postgres
+      connect-timeout: 500ms
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: trip-demand-aggregator
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: ${KAFKA_MAX_POLL_RECORDS:1000}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      compression-type: lz4
+      batch-size: 65536
+      properties:
+        enable.idempotence: true
+        linger.ms: 20
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+
+app:
+  topic: trip-events
+  partitions: 12
+  bucket: 5m
+  consumer-concurrency: ${CONSUMER_CONCURRENCY:3}
+  cache:
+    live-ttl: 5s
+    closed-ttl: 10m
+  dedup-retention: 7d
+  cors-origins: ${CORS_ORIGINS:*}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    org.apache.kafka: WARN
